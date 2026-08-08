@@ -151,6 +151,14 @@ async function persistStopwatch() {
   try { await store.set("stopwatch", JSON.stringify(sw)); } catch (e) {}
 }
 
+let draftSaveTimer = null;
+function persistDraft() {
+  clearTimeout(draftSaveTimer);
+  draftSaveTimer = setTimeout(() => {
+    store.set("draft", JSON.stringify({ subject: state.subject, topic: state.topic, minutes: state.minutes }));
+  }, 300);
+}
+
 const root = document.getElementById("root");
 
 function todayKey(){ return dateKey(new Date()); }
@@ -382,11 +390,11 @@ function attachHandlers(){
   if (goalCancel) goalCancel.onclick = () => { state.showGoalEdit = false; render(); };
 
   const subjectSel = document.getElementById("subjectSel");
-  if (subjectSel) subjectSel.onchange = e => { state.subject = e.target.value; };
+  if (subjectSel) subjectSel.onchange = e => { state.subject = e.target.value; persistDraft(); };
   const topicInput = document.getElementById("topicInput");
-  if (topicInput) topicInput.oninput = e => { state.topic = e.target.value; };
+  if (topicInput) topicInput.oninput = e => { state.topic = e.target.value; persistDraft(); };
   const minutesInput = document.getElementById("minutesInput");
-  if (minutesInput) minutesInput.oninput = e => { state.minutes = e.target.value; };
+  if (minutesInput) minutesInput.oninput = e => { state.minutes = e.target.value; persistDraft(); };
 
   const addBtn = document.getElementById("addBtn");
   if (addBtn) addBtn.onclick = () => {
@@ -401,6 +409,7 @@ function attachHandlers(){
       ts: Date.now(),
     };
     state.topic = ""; state.minutes = "";
+    store.set("draft", JSON.stringify({ subject: state.subject, topic: "", minutes: "" }));
     persistSessions([entry, ...state.sessions]);
   };
 
@@ -417,9 +426,16 @@ function attachHandlers(){
     const s = await store.get("sessions");
     const g = await store.get("settings");
     const swSaved = await store.get("stopwatch");
+    const draftSaved = await store.get("draft");
     state.sessions = s ? JSON.parse(s) : [];
     state.dailyGoal = g ? (JSON.parse(g).dailyGoal || DEFAULT_GOAL) : DEFAULT_GOAL;
     state.goalDraft = String(state.dailyGoal);
+    if (draftSaved) {
+      const d = JSON.parse(draftSaved);
+      if (d.subject) state.subject = d.subject;
+      if (d.topic) state.topic = d.topic;
+      if (d.minutes) state.minutes = d.minutes;
+    }
     if (swSaved) {
       const parsed = JSON.parse(swSaved);
       sw = { running: !!parsed.running, elapsedMs: parsed.elapsedMs || 0, startedAt: parsed.startedAt || 0 };
