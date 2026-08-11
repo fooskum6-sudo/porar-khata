@@ -63,6 +63,10 @@
   .daily-bar-fill { width: 100%; border-radius: 6px; transition: height 0.4s ease; }
   .daily-bar-label { font-size: 0.6rem; color: #7A6D57; margin-top: 6px; white-space: nowrap; }
   .daily-bar-col.today .daily-bar-label { color: #E7A94C; font-weight: 600; }
+  .total-card { display: flex; align-items: center; gap: 14px; padding: 16px 18px; }
+  .total-icon { width: 44px; height: 44px; border-radius: 50%; background: #14100C; border: 1px solid #3A2E1F; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .total-value { font-size: 1.5rem; color: #F5EFE2; line-height: 1.1; }
+  .total-label { font-size: 0.78rem; color: #A99A82; margin-top: 2px; }
   .form-col { display: flex; flex-direction: column; gap: 8px; }
   .form-row { display: flex; gap: 8px; }
   .btn-primary { background: #E7A94C; color: #14100C; font-weight: 600; font-size: 0.9rem; border: none; border-radius: 10px; padding: 9px 16px; cursor: pointer; display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
@@ -206,12 +210,14 @@ function computeDerived(){
   state.sessions.forEach(s => { g[s.date] = g[s.date] || []; g[s.date].push(s); });
   const grouped = Object.entries(g).sort((a,b) => a[0] < b[0] ? 1 : -1);
 
-  return { today, todayMinutes, todayPct, streak, weekTotals, maxWeek, dailyPct, grouped };
+  const totalAllTime = state.sessions.reduce((a, s) => a + s.minutes, 0);
+
+  return { today, todayMinutes, todayPct, streak, weekTotals, maxWeek, dailyPct, totalAllTime, grouped };
 }
 
 function render(){
   if (!state.loaded) { root.innerHTML = '<div class="loading">লোড হচ্ছে…</div>'; return; }
-  const { today, todayMinutes, todayPct, streak, weekTotals, maxWeek, dailyPct, grouped } = computeDerived();
+  const { today, todayMinutes, todayPct, streak, weekTotals, maxWeek, dailyPct, totalAllTime, grouped } = computeDerived();
   const circumference = 2 * Math.PI * 54;
   const dashOffset = circumference - (todayPct/100)*circumference;
 
@@ -242,6 +248,14 @@ function render(){
           <div class="hero-line row gap1">${svgClock()} আজ পড়েছ ${minutesToHM(todayMinutes)}</div>
           <div class="hero-line row gap1">${svgFlame(streak>0)} ${streak>0 ? `${toBn(streak)} দিনের স্ট্রিক` : "আজ থেকে স্ট্রিক শুরু করো"}</div>
           <div class="hero-goal">লক্ষ্য: প্রতিদিন ${minutesToHM(state.dailyGoal)}</div>
+        </div>
+      </div>
+
+      <div class="card total-card">
+        <div class="total-icon">${svgBook()}</div>
+        <div>
+          <div class="total-value lamp-title">${minutesToHM(totalAllTime)}</div>
+          <div class="total-label">সর্বমোট পড়াশোনা (শুরু থেকে)</div>
         </div>
       </div>
 
@@ -352,6 +366,7 @@ function svgPlay(){ return `<svg width="16" height="16" viewBox="0 0 24 24" fill
 function svgPause(){ return `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>`; }
 function svgReset(){ return `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 109-9 9.75 9.75 0 00-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>`; }
 function svgCheck(){ return `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>`; }
+function svgBook(){ return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#E7A94C" stroke-width="2"><path d="M2 4h6a4 4 0 014 4v12a3 3 0 00-3-3H2z"/><path d="M22 4h-6a4 4 0 00-4 4v12a3 3 0 013-3h7z"/></svg>`; }
 
 async function persistSessions(next){
   state.sessions = next;
