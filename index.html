@@ -56,6 +56,13 @@
   .sw-reset { background: transparent; border: 1px solid #3A2E1F; color: #A99A82; }
   .sw-log { background: transparent; border: 1px solid #E7A94C; color: #E7A94C; }
   .sw-log:disabled { opacity: 0.35; cursor: default; }
+  .daily-chart { display: flex; gap: 8px; overflow-x: auto; padding: 4px 2px 6px; align-items: flex-end; }
+  .daily-bar-col { display: flex; flex-direction: column; align-items: center; flex: 0 0 30px; }
+  .daily-bar-pct { font-size: 0.62rem; color: #A99A82; margin-bottom: 4px; white-space: nowrap; }
+  .daily-bar-track { width: 14px; height: 90px; background: #221B14; border-radius: 6px; display: flex; align-items: flex-end; overflow: hidden; }
+  .daily-bar-fill { width: 100%; border-radius: 6px; transition: height 0.4s ease; }
+  .daily-bar-label { font-size: 0.6rem; color: #7A6D57; margin-top: 6px; white-space: nowrap; }
+  .daily-bar-col.today .daily-bar-label { color: #E7A94C; font-weight: 600; }
   .form-col { display: flex; flex-direction: column; gap: 8px; }
   .form-row { display: flex; gap: 8px; }
   .btn-primary { background: #E7A94C; color: #14100C; font-weight: 600; font-size: 0.9rem; border: none; border-radius: 10px; padding: 9px 16px; cursor: pointer; display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
@@ -185,16 +192,26 @@ function computeDerived(){
   });
   const maxWeek = Math.max(1, ...Object.values(weekTotals));
 
+  const dailyPct = [];
+  for (let i = 13; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const key = dateKey(d);
+    const total = byDate[key] || 0;
+    const pct = Math.min(100, Math.round((total / state.dailyGoal) * 100));
+    dailyPct.push({ key, pct, total, isToday: key === today, dayLabel: `${toBn(d.getDate())}/${toBn(d.getMonth()+1)}` });
+  }
+
   const g = {};
   state.sessions.forEach(s => { g[s.date] = g[s.date] || []; g[s.date].push(s); });
   const grouped = Object.entries(g).sort((a,b) => a[0] < b[0] ? 1 : -1);
 
-  return { today, todayMinutes, todayPct, streak, weekTotals, maxWeek, grouped };
+  return { today, todayMinutes, todayPct, streak, weekTotals, maxWeek, dailyPct, grouped };
 }
 
 function render(){
   if (!state.loaded) { root.innerHTML = '<div class="loading">লোড হচ্ছে…</div>'; return; }
-  const { today, todayMinutes, todayPct, streak, weekTotals, maxWeek, grouped } = computeDerived();
+  const { today, todayMinutes, todayPct, streak, weekTotals, maxWeek, dailyPct, grouped } = computeDerived();
   const circumference = 2 * Math.PI * 54;
   const dashOffset = circumference - (todayPct/100)*circumference;
 
@@ -235,6 +252,21 @@ function render(){
         <button class="btn-primary" id="goalSave">সংরক্ষণ</button>
         <button class="icon-btn" id="goalCancel">${svgX()}</button>
       </div>` : ""}
+
+      <div class="card">
+        <div class="section-label" style="margin-bottom:2px;">দৈনিক অগ্রগতি (গত ১৪ দিন)</div>
+        <div class="daily-chart">
+          ${dailyPct.map(d => `
+            <div class="daily-bar-col ${d.isToday ? "today" : ""}">
+              <div class="daily-bar-pct">${toBn(d.pct)}%</div>
+              <div class="daily-bar-track">
+                <div class="daily-bar-fill" style="height:${d.pct}%; background:${d.pct>=100 ? "#5FA88F" : "#E7A94C"};"></div>
+              </div>
+              <div class="daily-bar-label">${d.dayLabel}</div>
+            </div>
+          `).join("")}
+        </div>
+      </div>
 
       <div class="card">
         <div class="section-label" style="margin-bottom:2px;">স্টপওয়াচ</div>
