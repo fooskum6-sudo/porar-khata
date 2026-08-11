@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>পড়ার খাতা</title>
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#14100C" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="পড়ার খাতা" />
+<link rel="icon" href="icon-192.png" />
+<link rel="apple-touch-icon" href="icon-192.png" />
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Tiro+Bangla:ital@0;1&family=Hind+Siliguri:wght@400;500;600;700&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    background: radial-gradient(ellipse 900px 500px at 50% -10%, #2A2015 0%, #14100C 55%);
+    color: #F2E9D8;
+    font-family: 'Hind Siliguri', sans-serif;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+  .lamp-title { font-family: 'Tiro Bangla', serif; }
+  .wrap { max-width: 480px; margin: 0 auto; padding: 32px 16px 64px; }
+  .row { display: flex; align-items: center; }
+  .between { justify-content: space-between; }
+  .gap1 { gap: 6px; } .gap2 { gap: 8px; } .gap3 { gap: 12px; } .gap4 { gap: 16px; }
+  h1 { font-size: 1.7rem; color: #F5EFE2; letter-spacing: 0.01em; }
+  .sub { color: #A99A82; font-size: 0.9rem; margin-bottom: 24px; }
+  .icon-btn { background: none; border: none; color: #A99A82; cursor: pointer; display: flex; }
+  .icon-btn:focus-visible { outline: 2px solid #E7A94C; outline-offset: 2px; }
+  .card { background: #221B14; border: 1px solid #3A2E1F; border-radius: 16px; padding: 20px; margin-bottom: 24px; }
+  .outline-card { border-radius: 16px; padding: 16px; margin-bottom: 24px; }
+  .hero { display: flex; align-items: center; gap: 20px; }
+  .gauge { position: relative; width: 128px; height: 128px; flex-shrink: 0; }
+  .gauge-ring { transition: stroke-dashoffset 0.6s cubic-bezier(.4,0,.2,1); }
+  @media (prefers-reduced-motion: reduce) { .gauge-ring { transition: none; } }
+  .gauge-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .gauge-pct { font-size: 1.5rem; color: #F5EFE2; }
+  .gauge-label { font-size: 0.7rem; color: #A99A82; }
+  .hero-info { flex: 1; min-width: 0; }
+  .hero-line { font-size: 0.85rem; color: #D9CBB0; margin-bottom: 8px; }
+  .hero-goal { font-size: 0.75rem; color: #7A6D57; margin-top: 8px; }
+  .goal-edit { display: flex; align-items: center; gap: 8px; }
+  input, select { font-family: inherit; font-size: 0.9rem; color: #F2E9D8; background: #14100C; border: 1px solid #3A2E1F; border-radius: 10px; padding: 9px 12px; }
+  input:focus, select:focus, button:focus-visible { outline: 2px solid #E7A94C; outline-offset: 2px; }
+  select { background: #221B14; }
+  .section-label { font-size: 0.9rem; color: #A99A82; margin-bottom: 12px; }
+  .sw-display { font-size: 2.6rem; color: #F5EFE2; text-align: center; letter-spacing: 0.03em; margin: 4px 0 16px; font-variant-numeric: tabular-nums; }
+  .sw-btns { display: flex; gap: 8px; }
+  .sw-btn { flex: 1; border: none; border-radius: 10px; padding: 10px; font-size: 0.9rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; }
+  .sw-start { background: #E7A94C; color: #14100C; }
+  .sw-pause { background: #5FA88F; color: #14100C; }
+  .sw-reset { background: transparent; border: 1px solid #3A2E1F; color: #A99A82; }
+  .sw-log { background: transparent; border: 1px solid #E7A94C; color: #E7A94C; }
+  .sw-log:disabled { opacity: 0.35; cursor: default; }
+  .daily-chart { display: flex; gap: 8px; overflow-x: auto; padding: 4px 2px 6px; align-items: flex-end; }
+  .daily-bar-col { display: flex; flex-direction: column; align-items: center; flex: 0 0 30px; }
+  .daily-bar-pct { font-size: 0.62rem; color: #A99A82; margin-bottom: 4px; white-space: nowrap; }
+  .daily-bar-track { width: 14px; height: 90px; background: #221B14; border-radius: 6px; display: flex; align-items: flex-end; overflow: hidden; }
+  .daily-bar-fill { width: 100%; border-radius: 6px; transition: height 0.4s ease; }
+  .daily-bar-label { font-size: 0.6rem; color: #7A6D57; margin-top: 6px; white-space: nowrap; }
+  .daily-bar-col.today .daily-bar-label { color: #E7A94C; font-weight: 600; }
+  .form-col { display: flex; flex-direction: column; gap: 8px; }
+  .form-row { display: flex; gap: 8px; }
+  .btn-primary { background: #E7A94C; color: #14100C; font-weight: 600; font-size: 0.9rem; border: none; border-radius: 10px; padding: 9px 16px; cursor: pointer; display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+  .btn-primary:hover { filter: brightness(1.05); }
+  .subj-card { border-radius: 12px; padding: 10px 12px; margin-bottom: 8px; }
+  .subj-top { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 0.85rem; }
+  .subj-name { color: #F2E9D8; }
+  .subj-total { color: #A99A82; font-size: 0.78rem; }
+  .bar-track { background: #221B14; height: 5px; border-radius: 4px; overflow: hidden; }
+  .bar-fill { height: 100%; transition: width 0.5s ease; }
+  .empty { border: 1px dashed #3A2E1F; color: #7A6D57; border-radius: 12px; padding: 24px 16px; text-align: center; font-size: 0.9rem; }
+  .date-label { font-size: 0.78rem; color: #7A6D57; margin-bottom: 6px; }
+  .hist-item { border: 1px solid #3A2E1F; border-radius: 10px; padding: 8px 12px; display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .hist-text { flex: 1; min-width: 0; font-size: 0.85rem; color: #F2E9D8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .hist-mins { font-size: 0.78rem; color: #A99A82; flex-shrink: 0; }
+  .del-btn { color: #7A6D57; background: none; border: none; cursor: pointer; display: flex; flex-shrink: 0; }
+  .del-btn:hover { color: #C97B84; }
+  .error-box { border: 1px solid #C97B84; color: #E8B6BC; font-size: 0.85rem; border-radius: 10px; padding: 8px 12px; margin-bottom: 16px; }
+  .loading { display:flex; align-items:center; justify-content:center; min-height:100vh; color:#A99A82; }
+</style>
+</head>
+<body>
+<div id="root"><div class="loading">লোড হচ্ছে…</div></div>
+
+<script>
+const SUBJECTS = [
+  { key: "physics", label: "পদার্থবিজ্ঞান", color: "#E7A94C" },
+  { key: "chemistry", label: "রসায়ন", color: "#5FA88F" },
+  { key: "hmath", label: "উচ্চতর গণিত", color: "#C97B84" },
+  { key: "biology", label: "জীববিজ্ঞান", color: "#8FAF6B" },
+  { key: "other", label: "অন্যান্য", color: "#9C8F78" },
+];
+const BN_DIGITS = ["০","১","২","৩","৪","৫","৬","৭","৮","৯"];
+const toBn = n => String(Math.round(n)).split("").map(c => /\d/.test(c) ? BN_DIGITS[+c] : c).join("");
+const BN_MONTHS = ["জানুয়ারি","ফেব্রুয়ারি","মার্চ","এপ্রিল","মে","জুন","জুলাই","আগস্ট","সেপ্টেম্বর","অক্টোবর","নভেম্বর","ডিসেম্বর"];
+const BN_WEEKDAYS = ["রবি","সোম","মঙ্গল","বুধ","বৃহস্পতি","শুক্র","শনি"];
+const DEFAULT_GOAL = 240;
+
+function dateKey(d){ const dt=new Date(d); return `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,"0")}-${String(dt.getDate()).padStart(2,"0")}`; }
+function fmtBnDate(key){ const [y,m,d]=key.split("-").map(Number); const dt=new Date(y,m-1,d); return `${toBn(d)} ${BN_MONTHS[m-1]}, ${BN_WEEKDAYS[dt.getDay()]}বার`; }
+function minutesToHM(mins){ const h=Math.floor(mins/60), m=mins%60; if(h===0) return `${toBn(m)} মিনিট`; if(m===0) return `${toBn(h)} ঘণ্টা`; return `${toBn(h)} ঘণ্টা ${toBn(m)} মিনিট`; }
+
+// ---- storage: uses window.storage when available (Claude artifact host), else falls back to localStorage so this file also works as a standalone app ----
+const store = {
+  async get(key){
+    if (window.storage) { try { const r = await window.storage.get(key, false); return r ? r.value : null; } catch(e){ return null; } }
+    return localStorage.getItem(key);
+  },
+  async set(key, value){
+    if (window.storage) { try { await window.storage.set(key, value, false); return true; } catch(e){ return false; } }
+    localStorage.setItem(key, value); return true;
+  }
+};
+
+let state = {
+  loaded: false,
+  sessions: [],
+  dailyGoal: DEFAULT_GOAL,
+  error: "",
+  subject: SUBJECTS[0].key,
+  topic: "",
+  minutes: "",
+  showGoalEdit: false,
+  goalDraft: String(DEFAULT_GOAL),
+};
+
+let sw = { running: false, elapsedMs: 0, startedAt: 0 };
+let swTickHandle = null;
+
+function formatStopwatch(ms) {
+  const totalSec = Math.floor(ms / 1000);
+  const h = Math.floor(totalSec / 3600);
+  const m = Math.floor((totalSec % 3600) / 60);
+  const s = totalSec % 60;
+  const pad = n => toBn(String(n).padStart(2, "0"));
+  if (h > 0) return `${pad(h)}:${pad(m)}:${pad(s)}`;
+  return `${pad(m)}:${pad(s)}`;
+}
+
+function currentSwElapsed() {
+  return sw.elapsedMs + (sw.running ? Date.now() - sw.startedAt : 0);
+}
+
+function swUpdateDisplay() {
+  const el = document.getElementById("swDisplay");
+  if (el) el.textContent = formatStopwatch(currentSwElapsed());
+  const logBtn = document.getElementById("swLogBtn");
+  if (logBtn) logBtn.disabled = currentSwElapsed() < 60000;
+}
+
+async function persistStopwatch() {
+  try { await store.set("stopwatch", JSON.stringify(sw)); } catch (e) {}
+}
+
+let draftSaveTimer = null;
+function persistDraft() {
+  clearTimeout(draftSaveTimer);
+  draftSaveTimer = setTimeout(() => {
+    store.set("draft", JSON.stringify({ subject: state.subject, topic: state.topic, minutes: state.minutes }));
+  }, 300);
+}
+
+const root = document.getElementById("root");
+
+function todayKey(){ return dateKey(new Date()); }
+
+function computeDerived(){
+  const today = todayKey();
+  const todayMinutes = state.sessions.filter(s => s.date === today).reduce((a,s)=>a+s.minutes,0);
+  const todayPct = Math.min(100, Math.round((todayMinutes/state.dailyGoal)*100));
+
+  const byDate = {};
+  state.sessions.forEach(s => { byDate[s.date] = (byDate[s.date]||0) + s.minutes; });
+  let streak = 0, cursor = new Date();
+  while (true) {
+    const key = dateKey(cursor);
+    if ((byDate[key]||0) >= state.dailyGoal) { streak++; cursor.setDate(cursor.getDate()-1); }
+    else break;
+  }
+
+  const now = new Date(); const weekAgo = new Date(now); weekAgo.setDate(now.getDate()-6);
+  const weekTotals = {}; SUBJECTS.forEach(s => weekTotals[s.key]=0);
+  state.sessions.forEach(s => {
+    const d = new Date(s.date);
+    if (d >= new Date(dateKey(weekAgo)) && d <= now) weekTotals[s.subject] = (weekTotals[s.subject]||0) + s.minutes;
+  });
+  const maxWeek = Math.max(1, ...Object.values(weekTotals));
+
+  const dailyPct = [];
+  for (let i = 13; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const key = dateKey(d);
+    const total = byDate[key] || 0;
+    const pct = Math.min(100, Math.round((total / state.dailyGoal) * 100));
+    dailyPct.push({ key, pct, total, isToday: key === today, dayLabel: `${toBn(d.getDate())}/${toBn(d.getMonth()+1)}` });
+  }
+
+  const g = {};
+  state.sessions.forEach(s => { g[s.date] = g[s.date] || []; g[s.date].push(s); });
+  const grouped = Object.entries(g).sort((a,b) => a[0] < b[0] ? 1 : -1);
+
+  return { today, todayMinutes, todayPct, streak, weekTotals, maxWeek, dailyPct, grouped };
+}
+
+function render(){
+  if (!state.loaded) { root.innerHTML = '<div class="loading">লোড হচ্ছে…</div>'; return; }
+  const { today, todayMinutes, todayPct, streak, weekTotals, maxWeek, dailyPct, grouped } = computeDerived();
+  const circumference = 2 * Math.PI * 54;
+  const dashOffset = circumference - (todayPct/100)*circumference;
+
+  root.innerHTML = `
+    <div class="wrap">
+      <div class="row between" style="margin-bottom:4px;">
+        <h1 class="lamp-title">পড়ার খাতা</h1>
+        <button class="icon-btn" id="goalToggle" aria-label="দৈনিক লক্ষ্য পরিবর্তন করুন">${svgSettings()}</button>
+      </div>
+      <p class="sub">${fmtBnDate(today)}</p>
+
+      ${state.error ? `<div class="error-box">${state.error}</div>` : ""}
+
+      <div class="card hero">
+        <div class="gauge">
+          <svg width="128" height="128" viewBox="0 0 128 128">
+            <circle cx="64" cy="64" r="54" fill="none" stroke="#3A2E1F" stroke-width="10" />
+            <circle class="gauge-ring" cx="64" cy="64" r="54" fill="none" stroke="#E7A94C" stroke-width="10"
+              stroke-linecap="round" stroke-dasharray="${circumference}" stroke-dashoffset="${dashOffset}"
+              transform="rotate(-90 64 64)" style="filter:${todayPct>10 ? `drop-shadow(0 0 ${6+todayPct/12}px #E7A94C99)` : "none"}" />
+          </svg>
+          <div class="gauge-center">
+            <span class="gauge-pct lamp-title">${toBn(todayPct)}%</span>
+            <span class="gauge-label">আজকের লক্ষ্য</span>
+          </div>
+        </div>
+        <div class="hero-info">
+          <div class="hero-line row gap1">${svgClock()} আজ পড়েছ ${minutesToHM(todayMinutes)}</div>
+          <div class="hero-line row gap1">${svgFlame(streak>0)} ${streak>0 ? `${toBn(streak)} দিনের স্ট্রিক` : "আজ থেকে স্ট্রিক শুরু করো"}</div>
+          <div class="hero-goal">লক্ষ্য: প্রতিদিন ${minutesToHM(state.dailyGoal)}</div>
+        </div>
+      </div>
+
+      ${state.showGoalEdit ? `
+      <div class="card goal-edit">
+        <span style="font-size:0.85rem;color:#D9CBB0;flex-shrink:0;">দৈনিক লক্ষ্য (মিনিট)</span>
+        <input type="number" id="goalDraft" value="${state.goalDraft}" style="flex:1;min-width:0;" />
+        <button class="btn-primary" id="goalSave">সংরক্ষণ</button>
+        <button class="icon-btn" id="goalCancel">${svgX()}</button>
+      </div>` : ""}
+
+      <div class="card">
+        <div class="section-label" style="margin-bottom:2px;">দৈনিক অগ্রগতি (গত ১৪ দিন)</div>
+        <div class="daily-chart">
+          ${dailyPct.map(d => `
+            <div class="daily-bar-col ${d.isToday ? "today" : ""}">
+              <div class="daily-bar-pct">${toBn(d.pct)}%</div>
+              <div class="daily-bar-track">
+                <div class="daily-bar-fill" style="height:${d.pct}%; background:${d.pct>=100 ? "#5FA88F" : "#E7A94C"};"></div>
+              </div>
+              <div class="daily-bar-label">${d.dayLabel}</div>
+            </div>
+          `).join("")}
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-label" style="margin-bottom:2px;">স্টপওয়াচ</div>
+        <div class="sw-display" id="swDisplay">${formatStopwatch(currentSwElapsed())}</div>
+        <div class="sw-btns">
+          <button class="sw-btn ${sw.running ? "sw-pause" : "sw-start"}" id="swToggle">
+            ${sw.running ? svgPause() + " পজ" : svgPlay() + " শুরু"}
+          </button>
+          <button class="sw-btn sw-reset" id="swReset">${svgReset()} রিসেট</button>
+        </div>
+        <button class="sw-btn sw-log" id="swLogBtn" style="width:100%;margin-top:8px;" ${currentSwElapsed()<60000 ? "disabled" : ""}>
+          ${svgCheck()} সেশন হিসেবে যোগ করো
+        </button>
+      </div>
+
+      <div class="outline-card" style="border:1px solid #3A2E1F;">
+        <div class="section-label">নতুন সেশন যোগ করো</div>
+        <div class="form-col">
+          <select id="subjectSel">
+            ${SUBJECTS.map(s => `<option value="${s.key}" ${s.key===state.subject?"selected":""}>${s.label}</option>`).join("")}
+          </select>
+          <input id="topicInput" placeholder="টপিক (যেমন: নিউক্লিয়ার পদার্থবিজ্ঞান)" value="${escapeHtml(state.topic)}" />
+          <div class="form-row">
+            <input id="minutesInput" type="number" placeholder="মিনিট" value="${state.minutes}" style="flex:1;" />
+            <button class="btn-primary" id="addBtn">${svgPlus()} যোগ</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-label">এই সপ্তাহে বিষয়ভিত্তিক পড়া</div>
+      <div style="margin-bottom:24px;">
+        ${SUBJECTS.map(s => {
+          const total = weekTotals[s.key]||0;
+          const pct = Math.round((total/maxWeek)*100);
+          return `
+          <div class="subj-card" style="border:1px solid ${s.color}55;">
+            <div class="subj-top">
+              <span class="subj-name">${s.label}</span>
+              <span class="subj-total">${total>0 ? minutesToHM(total) : "—"}</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${s.color};"></div></div>
+          </div>`;
+        }).join("")}
+      </div>
+
+      <div class="section-label">ইতিহাস</div>
+      ${grouped.length===0 ? `<div class="empty">এখনো কোনো সেশন যোগ করা হয়নি। উপরে ফর্ম পূরণ করে শুরু করো।</div>` : `
+        <div>
+          ${grouped.map(([date, items]) => `
+            <div style="margin-bottom:16px;">
+              <div class="date-label">${fmtBnDate(date)}</div>
+              <div>
+                ${items.map(it => {
+                  const meta = SUBJECTS.find(s => s.key===it.subject) || SUBJECTS[4];
+                  return `
+                  <div class="hist-item">
+                    <span class="dot" style="background:${meta.color};"></span>
+                    <div class="hist-text">${meta.label}${it.topic ? " — " + escapeHtml(it.topic) : ""}</div>
+                    <span class="hist-mins">${minutesToHM(it.minutes)}</span>
+                    <button class="del-btn" data-id="${it.id}" aria-label="মুছে ফেলো">${svgTrash()}</button>
+                  </div>`;
+                }).join("")}
+              </div>
+            </div>
+          `).join("")}
+        </div>
+      `}
+    </div>
+  `;
+
+  attachHandlers();
+}
+
+function escapeHtml(s){ return (s||"").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+function svgSettings(){ return `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15a3 3 0 100-6 3 3 0 000 6z"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.6 15a1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.6a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>`; }
+function svgClock(){ return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#E7A94C" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>`; }
+function svgFlame(active){ return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="${active?'#E7A94C':'#5A4E3C'}" stroke-width="2"><path d="M8.5 14.5A2.5 2.5 0 0011 17a2.5 2.5 0 002.5-2.5c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7.5 7.5 0 11-15 0c0-1.153.433-2.294 1-3a2.5 2.5 0 002.5 2.5z"/></svg>`; }
+function svgX(){ return `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>`; }
+function svgPlus(){ return `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>`; }
+function svgTrash(){ return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z"/></svg>`; }
+function svgPlay(){ return `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>`; }
+function svgPause(){ return `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>`; }
+function svgReset(){ return `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 109-9 9.75 9.75 0 00-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>`; }
+function svgCheck(){ return `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>`; }
+
+async function persistSessions(next){
+  state.sessions = next;
+  const ok = await store.set("sessions", JSON.stringify(next));
+  if (!ok) state.error = "সংরক্ষণ ব্যর্থ হয়েছে।";
+  render();
+}
+async function persistGoal(g){
+  state.dailyGoal = g;
+  const ok = await store.set("settings", JSON.stringify({ dailyGoal: g }));
+  if (!ok) state.error = "সংরক্ষণ ব্যর্থ হয়েছে।";
+  render();
+}
+
+function attachHandlers(){
+  const swToggle = document.getElementById("swToggle");
+  if (swToggle) swToggle.onclick = () => {
+    if (sw.running) {
+      sw.elapsedMs += Date.now() - sw.startedAt;
+      sw.running = false;
+      clearInterval(swTickHandle);
+      swTickHandle = null;
+    } else {
+      sw.running = true;
+      sw.startedAt = Date.now();
+      swTickHandle = setInterval(swUpdateDisplay, 1000);
+    }
+    persistStopwatch();
+    render();
+  };
+  const swReset = document.getElementById("swReset");
+  if (swReset) swReset.onclick = () => {
+    sw = { running: false, elapsedMs: 0, startedAt: 0 };
+    if (swTickHandle) { clearInterval(swTickHandle); swTickHandle = null; }
+    persistStopwatch();
+    render();
+  };
+  const swLogBtn = document.getElementById("swLogBtn");
+  if (swLogBtn) swLogBtn.onclick = () => {
+    const mins = Math.round(currentSwElapsed() / 60000);
+    if (mins < 1) return;
+    const entry = {
+      id: `${Date.now()}-${Math.random().toString(36).slice(2,7)}`,
+      subject: state.subject,
+      topic: (state.topic||"").trim(),
+      minutes: mins,
+      date: todayKey(),
+      ts: Date.now(),
+    };
+    sw = { running: false, elapsedMs: 0, startedAt: 0 };
+    if (swTickHandle) { clearInterval(swTickHandle); swTickHandle = null; }
+    persistStopwatch();
+    persistSessions([entry, ...state.sessions]);
+  };
+
+  const goalToggle = document.getElementById("goalToggle");
+  if (goalToggle) goalToggle.onclick = () => { state.showGoalEdit = !state.showGoalEdit; render(); };
+
+  const goalSave = document.getElementById("goalSave");
+  if (goalSave) goalSave.onclick = () => {
+    const draft = document.getElementById("goalDraft").value;
+    const g = parseInt(draft, 10);
+    if (g > 0) persistGoal(g);
+    state.showGoalEdit = false;
+    render();
+  };
+  const goalCancel = document.getElementById("goalCancel");
+  if (goalCancel) goalCancel.onclick = () => { state.showGoalEdit = false; render(); };
+
+  const subjectSel = document.getElementById("subjectSel");
+  if (subjectSel) subjectSel.onchange = e => { state.subject = e.target.value; persistDraft(); };
+  const topicInput = document.getElementById("topicInput");
+  if (topicInput) topicInput.oninput = e => { state.topic = e.target.value; persistDraft(); };
+  const minutesInput = document.getElementById("minutesInput");
+  if (minutesInput) minutesInput.oninput = e => { state.minutes = e.target.value; persistDraft(); };
+
+  const addBtn = document.getElementById("addBtn");
+  if (addBtn) addBtn.onclick = () => {
+    const mins = parseInt(state.minutes, 10);
+    if (!mins || mins <= 0) return;
+    const entry = {
+      id: `${Date.now()}-${Math.random().toString(36).slice(2,7)}`,
+      subject: state.subject,
+      topic: (state.topic||"").trim(),
+      minutes: mins,
+      date: todayKey(),
+      ts: Date.now(),
+    };
+    state.topic = ""; state.minutes = "";
+    store.set("draft", JSON.stringify({ subject: state.subject, topic: "", minutes: "" }));
+    persistSessions([entry, ...state.sessions]);
+  };
+
+  document.querySelectorAll(".del-btn").forEach(btn => {
+    btn.onclick = () => {
+      const id = btn.getAttribute("data-id");
+      persistSessions(state.sessions.filter(s => s.id !== id));
+    };
+  });
+}
+
+(async function init(){
+  try {
+    const s = await store.get("sessions");
+    const g = await store.get("settings");
+    const swSaved = await store.get("stopwatch");
+    const draftSaved = await store.get("draft");
+    state.sessions = s ? JSON.parse(s) : [];
+    state.dailyGoal = g ? (JSON.parse(g).dailyGoal || DEFAULT_GOAL) : DEFAULT_GOAL;
+    state.goalDraft = String(state.dailyGoal);
+    if (draftSaved) {
+      const d = JSON.parse(draftSaved);
+      if (d.subject) state.subject = d.subject;
+      if (d.topic) state.topic = d.topic;
+      if (d.minutes) state.minutes = d.minutes;
+    }
+    if (swSaved) {
+      const parsed = JSON.parse(swSaved);
+      sw = { running: !!parsed.running, elapsedMs: parsed.elapsedMs || 0, startedAt: parsed.startedAt || 0 };
+      if (sw.running) swTickHandle = setInterval(swUpdateDisplay, 1000);
+    }
+  } catch (e) {
+    state.error = "ডেটা লোড করা যায়নি।";
+  } finally {
+    state.loaded = true;
+    render();
+  }
+})();
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js").catch(() => {});
+  });
+}
+</script>
+</body>
+</html>
